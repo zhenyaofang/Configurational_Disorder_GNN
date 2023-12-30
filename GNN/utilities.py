@@ -12,8 +12,6 @@ from pymatgen.core import Structure
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
-from dataset import Dataset
-
 def getElementProperties(number):
     element = Element.from_Z(number)
     properties = []
@@ -39,11 +37,11 @@ def calculateEdgeAttributes(dist, r_cutoff, dr):
 def structureToGraph(structure, atom_dict={k: k for k in range(100)}, r_cutoff=10, dr=0.1, max_neighbors=20):
     neighbors = structure.get_all_neighbors(r_cutoff, include_index=True)
     all_nbrs = [sorted(nbrs, key=lambda x: x.nn_distance) for nbrs in neighbors]
-    nbr_fea_idx, nbr_fea = [], []
+    neighbors_idx, neighbors_dist = [], []
     max_neighbors = min(max_neighbors, len(all_nbrs[0]))
     for nbr in all_nbrs:
-        nbr_fea_idx.append(list(map(lambda x: x.index, nbr[ : max_neighbors])))
-        nbr_fea.append(list(map(lambda x: x.nn_distance, nbr[ : max_neighbors])))
+        neighbors_idx.append(list(map(lambda x: x.index, nbr[ : max_neighbors])))
+        neighbors_dist.append(list(map(lambda x: x.nn_distance, nbr[ : max_neighbors])))
 
     x = []
     edge_index = []
@@ -51,9 +49,9 @@ def structureToGraph(structure, atom_dict={k: k for k in range(100)}, r_cutoff=1
     for i in range(len(structure.atomic_numbers)):
         elemi = atom_dict[structure.atomic_numbers[i]]
         x.append(elemi)
-        for j in range(len(nbr_fea_idx[i])):
-            edge_index.append([i, nbr_fea_idx[i][j]])
-            edge_attr.append(calculateEdgeAttributes(nbr_fea[i][j], r_cutoff=r_cutoff, dr=dr))
+        for j in range(len(neighbors_idx[i])):
+            edge_index.append([i, neighbors_idx[i][j]])
+            edge_attr.append(calculateEdgeAttributes(neighbors_dist[i][j], r_cutoff=r_cutoff, dr=dr))
 
     x = torch.tensor(x, dtype=torch.float)
     edge_index = torch.tensor(np.array(edge_index), dtype=torch.long).t().contiguous()
@@ -88,3 +86,7 @@ def loadModel(filename):
         model = CPU_Unpickler(f).load()
     return model
 
+
+if __name__ == '__main__':
+    struct = Structure.from_file('./dataset_all/raw/1.POSCAR')
+    structureToGraph(struct)
