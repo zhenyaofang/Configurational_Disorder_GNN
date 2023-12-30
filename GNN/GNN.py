@@ -66,27 +66,17 @@ class GNN():
         return [train_loader, val_loader, test_loader]
 
     def lossFunction(self, out, y):
-        # errors = out - y
-        # mae = torch.sum(torch.abs(errors))
-        # error_mu = torch.mean(errors)
-        # var = torch.sum(torch.square(errors - error_mu))
-        #
-        # if self.loss_type == 'mean':
-        #     return mae
-        # elif self.loss_type == 'variance':
-        #     return var
-        # elif self.loss_type == 'both':
-        #     return mae, var
-        # else:
-        #     self.logger.info('Loss_type only supports mean, variance, and both.')
-        sum = torch.sum(torch.abs(out - y))
-        var = torch.sum(torch.square(out - y))
+        errors = out - y
+        mae = torch.sum(torch.abs(errors))
+        error_mu = torch.mean(errors)
+        var = torch.sum(torch.square(errors - error_mu))
+
         if self.loss_type == 'mean':
-            return sum
+            return mae
         elif self.loss_type == 'variance':
             return var
         elif self.loss_type == 'both':
-            return sum, var
+            return mae, var
         else:
             self.logger.info('Loss_type only supports mean, variance, and both.')
 
@@ -127,7 +117,7 @@ class GNN():
             out = self.model(batch)
             loss = self.lossFunction(out, batch.y)
             if self.loss_type == 'both':
-                loss = loss[1]
+                loss = loss[0]
             loss.backward()
             # clip_grad_norm_(self.model.parameters(), max_norm=2.0)
             self.optimizer.step()
@@ -228,23 +218,23 @@ class GNN_optuna():
 if __name__ == '__main__':
     torch_geometric.seed_everything(4)
 
-    GNN = GNN(dataset_root='dataset_full_concentration_pristine',
-              modelname='MPNN',
-              num_hidden_layers=1,
-              num_hidden_channels=8,
-              num_heads=1,
-              lr=0.03630155814180275,
-              weight_decay=0.08585870708132459,
-              batchsz=58,
-              max_epoch=100,
-              loss_type='mean'
-              )
-    GNN.run()
+    # GNN = GNN(dataset_root='dataset_full_concentration_pristine',
+    #           modelname='MPNN',
+    #           num_hidden_layers=1,
+    #           num_hidden_channels=8,
+    #           num_heads=1,
+    #           lr=0.03630155814180275,
+    #           weight_decay=0.08585870708132459,
+    #           batchsz=58,
+    #           max_epoch=100,
+    #           loss_type='mean'
+    #           )
+    # GNN.run()
 
-    # GNN_optuna = GNN_optuna(dataset_root='dataset_full_concentration_pristine', loss_type='mean')
-    # GNN_optuna.run()
-    # with open('./save/both.pkl', 'wb') as f:
-    #     pkl.dump(GNN_optuna, f)
+    GNN_optuna = GNN_optuna(dataset_root='dataset_full_concentration_pristine', loss_type='mean')
+    GNN_optuna.run()
+    with open('./save/both.pkl', 'wb') as f:
+        pkl.dump(GNN_optuna, f)
 
 
 
