@@ -31,7 +31,6 @@ class Dataset(InMemoryDataset):
         atom_dict = self.getAtomFeatures()
 
         raw_dir = os.path.join(self.root, 'raw')
-        raw_files = os.listdir(raw_dir)
 
         data_list = []
         for ind, E in zip(df.iloc[:, 0], df.iloc[:, 1]):
@@ -68,4 +67,4 @@ class Dataset(InMemoryDataset):
         return atom_dict
 
 if __name__ == '__main__':
-    data = Dataset(root='dataset_full_concentration_pristine_even')
+    data = Dataset(root='dataset')

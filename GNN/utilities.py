@@ -2,15 +2,11 @@ import logging
 import torch
 import numpy as np
 import io
-import os
 import pickle as pkl
-import matplotlib.pyplot as plt
 
 from pymatgen.core.periodic_table import Element
-from pymatgen.core import Structure
 
 from torch_geometric.data import Data
-from torch_geometric.loader import DataLoader
 
 def getElementProperties(number):
     element = Element.from_Z(number)
@@ -79,14 +75,3 @@ class CPU_Unpickler(pkl.Unpickler):
             return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
         else:
             return super().find_class(module, name)
-
-def loadModel(filename):
-    # assert filename in os.listdir('./save'), 'model {} does not exist'.format(filename)
-    with open('./save/' + filename, 'rb') as f:
-        model = CPU_Unpickler(f).load()
-    return model
-
-
-if __name__ == '__main__':
-    struct = Structure.from_file('./dataset_all/raw/1.POSCAR')
-    structureToGraph(struct)
